@@ -37,6 +37,8 @@ export const CreateGroupModal = ({ open, onOpenChange }: CreateGroupModalProps) 
     customDuration: "",
     description: "",
     maxMembers: "",
+    goal: "",
+    deadline: "",
   });
 
   const [showCustomDuration, setShowCustomDuration] = useState(false);
@@ -53,7 +55,7 @@ export const CreateGroupModal = ({ open, onOpenChange }: CreateGroupModalProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.type || !formData.amount) {
+    if (!formData.name || !formData.type || (formData.type !== "crowdfunding" && !formData.amount)) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -76,6 +78,8 @@ export const CreateGroupModal = ({ open, onOpenChange }: CreateGroupModalProps) 
       customDuration: "",
       description: "",
       maxMembers: "",
+      goal: "",
+      deadline: "",
     });
     setShowCustomDuration(false);
     onOpenChange(false);
@@ -83,7 +87,25 @@ export const CreateGroupModal = ({ open, onOpenChange }: CreateGroupModalProps) 
 
   // Determine UI states
   const isAjo = formData.type === "ajo";
-  const isOtherGroup = !!formData.type && formData.type !== "ajo";
+  const isCommunity = formData.type === "community";
+  const isCrowdfunding = formData.type === "crowdfunding";
+  const isOtherGroup = !!formData.type && formData.type !== "ajo" && formData.type !== "crowdfunding";
+
+  // Frequency options
+  const baseFrequencyOptions = [
+    { label: "Weekly", value: "weekly" },
+    { label: "Bi-weekly", value: "bi-weekly" },
+    { label: "Monthly", value: "monthly" },
+    { label: "Quarterly", value: "quarterly" },
+  ];
+  // Add daily for Ajo/Community, yearly for Community
+  let frequencyOptions = [...baseFrequencyOptions];
+  if (isAjo || isCommunity) {
+    frequencyOptions = [{ label: "Daily", value: "daily" }, ...frequencyOptions];
+  }
+  if (isCommunity) {
+    frequencyOptions.push({ label: "Yearly", value: "yearly" });
+  }
 
   // For duration: If user selects "custom", allow custom input, else use defined durations
   const selectedDuration = showCustomDuration
@@ -122,6 +144,10 @@ export const CreateGroupModal = ({ open, onOpenChange }: CreateGroupModalProps) 
                   // Reset type-specific fields on change
                   rotationType: "",
                   amountType: "",
+                  amount: "",
+                  frequency: "",
+                  goal: "",
+                  deadline: "",
                 }))
               }
             >
@@ -159,7 +185,7 @@ export const CreateGroupModal = ({ open, onOpenChange }: CreateGroupModalProps) 
           )}
 
           {/* Other group types: Fixed/Not Fixed contribution option */}
-          {isOtherGroup && (
+          {(isOtherGroup) && (
             <div className="space-y-2">
               <Label htmlFor="amountType">Contribution Amount Type</Label>
               <Select
@@ -179,42 +205,77 @@ export const CreateGroupModal = ({ open, onOpenChange }: CreateGroupModalProps) 
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount">
-                Contribution Amount (₦) *
-                {isOtherGroup && formData.amountType === "not-fixed" && " (Minimum)"}
-              </Label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder={isOtherGroup && formData.amountType === "not-fixed" ? "e.g., 1000 minimum" : "e.g., 10000"}
-                value={formData.amount}
-                onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
-                required
-                min={0}
-              />
+          {/* Crowdfunding: Goal/Target and Deadline */}
+          {isCrowdfunding && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="goal">Goal / Target (optional)</Label>
+                <Input
+                  id="goal"
+                  type="number"
+                  placeholder="e.g., 500000"
+                  value={formData.goal}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, goal: e.target.value }))}
+                  min={0}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="deadline">Deadline (optional)</Label>
+                <Input
+                  id="deadline"
+                  type="date"
+                  value={formData.deadline}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, deadline: e.target.value }))}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Contribution & frequency: for types except crowdfunding */}
+          {!isCrowdfunding && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount">
+                  Contribution Amount (₦) *
+                  {isOtherGroup && formData.amountType === "not-fixed" && " (Minimum)"}
+                </Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder={
+                    isOtherGroup && formData.amountType === "not-fixed" 
+                      ? "e.g., 1000 minimum" 
+                      : "e.g., 10000"
+                  }
+                  value={formData.amount}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, amount: e.target.value }))}
+                  required={!isCrowdfunding}
+                  min={0}
+                  disabled={isCrowdfunding}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="frequency">Frequency</Label>
+                <Select
+                  value={formData.frequency}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, frequency: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select frequency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {frequencyOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="frequency">Frequency</Label>
-              <Select
-                value={formData.frequency}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, frequency: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="bi-weekly">Bi-weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="quarterly">Quarterly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          )}
 
           {/* Duration selection with pre-defined options and a custom input */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
