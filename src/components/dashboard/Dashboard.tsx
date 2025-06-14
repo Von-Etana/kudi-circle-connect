@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardHeader } from "./DashboardHeader";
@@ -13,6 +12,7 @@ import { Settings } from "./Settings";
 import { UserProfile } from "./UserProfile";
 import { GroupManagementTab } from "./tabs/GroupManagementTab";
 import { NotificationsDropdown, useNotifications } from "./NotificationsDropdown";
+import { CrowdfundingTabContent } from "./tabs/CrowdfundingTabContent"; // <-- Added import
 
 // Use a notification context/hook to add notifications from within the dashboard or sections
 export const Dashboard = () => {
