@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Users, Coins, Wallet } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const actions = [
   {
@@ -31,6 +32,15 @@ const actions = [
 ];
 
 export const QuickActions = () => {
+  const { toast } = useToast();
+
+  const handleActionClick = (actionLabel: string) => {
+    toast({
+      title: `${actionLabel} Clicked`,
+      description: `You clicked on ${actionLabel}. This feature will be available soon!`,
+    });
+  };
+
   return (
     <Card className="border-emerald-100">
       <CardHeader>
@@ -40,17 +50,18 @@ export const QuickActions = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {actions.map((action, index) => (
             <Button
               key={index}
               variant="outline"
-              className={`h-auto p-4 flex flex-col items-center space-y-2 border-gray-200 hover:shadow-md transition-all duration-200 ${action.color} hover:text-white group`}
+              onClick={() => handleActionClick(action.label)}
+              className={`h-auto p-4 flex flex-col items-center space-y-2 border-gray-200 hover:shadow-md transition-all duration-200 ${action.color} hover:text-white group active:scale-95`}
             >
-              <action.icon className="w-6 h-6 text-gray-600 group-hover:text-white" />
+              <action.icon className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors" />
               <div className="text-center">
-                <p className="font-medium text-sm text-gray-900 group-hover:text-white">{action.label}</p>
-                <p className="text-xs text-gray-500 group-hover:text-white/80">{action.description}</p>
+                <p className="font-medium text-sm text-gray-900 group-hover:text-white transition-colors">{action.label}</p>
+                <p className="text-xs text-gray-500 group-hover:text-white/80 transition-colors">{action.description}</p>
               </div>
             </Button>
           ))}
