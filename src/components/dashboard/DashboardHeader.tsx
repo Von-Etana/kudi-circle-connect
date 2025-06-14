@@ -1,9 +1,14 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Coins } from "lucide-react";
+import { Users, Coins, User, Settings as SettingsIcon } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-export const DashboardHeader = () => {
+interface DashboardHeaderProps {
+  onTabChange?: (tab: string) => void;
+}
+
+export const DashboardHeader = ({ onTabChange }: DashboardHeaderProps) => {
   return (
     <header className="bg-white border-b border-emerald-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,13 +22,34 @@ export const DashboardHeader = () => {
               <p className="text-sm text-emerald-600">Community Financial Management</p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 hidden xs:inline-flex">
               ₦45,250 Total Balance
             </Badge>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="hidden xs:flex">
               <Users className="w-4 h-4 mr-2" />
               My Groups
+            </Button>
+            {/* Profile and Settings Icon Buttons */}
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Profile"
+              onClick={() => onTabChange && onTabChange("profile")}
+              className="rounded-full"
+            >
+              <Avatar className="w-8 h-8">
+                <AvatarFallback className="bg-emerald-100 text-emerald-700 text-sm">AJ</AvatarFallback>
+              </Avatar>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Settings"
+              onClick={() => onTabChange && onTabChange("settings")}
+              className="rounded-full"
+            >
+              <SettingsIcon className="w-6 h-6 text-emerald-700" />
             </Button>
           </div>
         </div>
