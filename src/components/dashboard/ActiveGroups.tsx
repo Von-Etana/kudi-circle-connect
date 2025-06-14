@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Calendar, Coins } from "lucide-react";
+import { useState } from "react";
+import { ActiveGroupDetailsModal } from "./ActiveGroupDetailsModal";
 
 const groups = [
   {
@@ -35,6 +37,14 @@ const groups = [
 ];
 
 export const ActiveGroups = () => {
+  const [viewDetailsGroup, setViewDetailsGroup] = useState<null | typeof groups[0]>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleViewDetails = (group: typeof groups[0]) => {
+    setViewDetailsGroup(group);
+    setModalOpen(true);
+  };
+
   return (
     <Card className="border-emerald-100">
       <CardHeader>
@@ -68,13 +78,26 @@ export const ActiveGroups = () => {
                 </div>
               </div>
               
-              <Button variant="outline" size="sm" className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                onClick={() => handleViewDetails(group)}
+              >
                 View Details
               </Button>
             </div>
           ))}
         </div>
       </CardContent>
+      <ActiveGroupDetailsModal
+        open={modalOpen}
+        onOpenChange={(open) => {
+          setModalOpen(open);
+          if (!open) setViewDetailsGroup(null);
+        }}
+        group={viewDetailsGroup}
+      />
     </Card>
   );
 };
