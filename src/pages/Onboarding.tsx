@@ -86,46 +86,59 @@ export default function Onboarding() {
           <CardContent>
             {currentStep === 0 && (
               <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); next(); }}>
-                <Input
-                  label="Full Name"
-                  name="fullName"
-                  placeholder="Enter your full name"
-                  required
-                  value={demography.fullName}
-                  onChange={handleDemographyChange}
-                />
-                <Input
-                  label="Age"
-                  name="age"
-                  placeholder="Enter your age"
-                  type="number"
-                  min="1"
-                  max="120"
-                  required
-                  value={demography.age}
-                  onChange={handleDemographyChange}
-                />
-                <select
-                  name="gender"
-                  required
-                  value={demography.gender}
-                  onChange={handleDemographyChange}
-                  className="w-full border rounded px-3 py-2 text-base"
-                >
-                  <option value="">Select gender</option>
-                  <option value="female">Female</option>
-                  <option value="male">Male</option>
-                  <option value="other">Other</option>
-                  <option value="prefer_not">Prefer not to say</option>
-                </select>
-                <Input
-                  label="Occupation"
-                  name="occupation"
-                  placeholder="E.g. Teacher, Engineer"
-                  required
-                  value={demography.occupation}
-                  onChange={handleDemographyChange}
-                />
+                <div>
+                  <label htmlFor="fullName" className="block mb-1 text-base font-medium">Full Name</label>
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    placeholder="Enter your full name"
+                    required
+                    value={demography.fullName}
+                    onChange={handleDemographyChange}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="age" className="block mb-1 text-base font-medium">Age</label>
+                  <Input
+                    id="age"
+                    name="age"
+                    placeholder="Enter your age"
+                    type="number"
+                    min="1"
+                    max="120"
+                    required
+                    value={demography.age}
+                    onChange={handleDemographyChange}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="gender" className="block mb-1 text-base font-medium">Gender</label>
+                  <select
+                    id="gender"
+                    name="gender"
+                    required
+                    value={demography.gender}
+                    onChange={handleDemographyChange}
+                    className="w-full border rounded px-3 py-2 text-base"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="other">Other</option>
+                    <option value="prefer_not">Prefer not to say</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="occupation" className="block mb-1 text-base font-medium">Occupation</label>
+                  <Input
+                    id="occupation"
+                    name="occupation"
+                    placeholder="E.g. Teacher, Engineer"
+                    required
+                    value={demography.occupation}
+                    onChange={handleDemographyChange}
+                  />
+                </div>
                 <div className="flex justify-end">
                   <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700">Next</Button>
                 </div>
@@ -133,30 +146,39 @@ export default function Onboarding() {
             )}
             {currentStep === 1 && (
               <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); next(); }}>
-                <Input
-                  label="Country"
-                  name="country"
-                  placeholder="E.g. Nigeria"
-                  required
-                  value={geography.country}
-                  onChange={handleGeographyChange}
-                />
-                <Input
-                  label="State"
-                  name="state"
-                  placeholder="E.g. Lagos"
-                  required
-                  value={geography.state}
-                  onChange={handleGeographyChange}
-                />
-                <Input
-                  label="City"
-                  name="city"
-                  placeholder="E.g. Ikeja"
-                  required
-                  value={geography.city}
-                  onChange={handleGeographyChange}
-                />
+                <div>
+                  <label htmlFor="country" className="block mb-1 text-base font-medium">Country</label>
+                  <Input
+                    id="country"
+                    name="country"
+                    placeholder="E.g. Nigeria"
+                    required
+                    value={geography.country}
+                    onChange={handleGeographyChange}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="state" className="block mb-1 text-base font-medium">State</label>
+                  <Input
+                    id="state"
+                    name="state"
+                    placeholder="E.g. Lagos"
+                    required
+                    value={geography.state}
+                    onChange={handleGeographyChange}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="city" className="block mb-1 text-base font-medium">City</label>
+                  <Input
+                    id="city"
+                    name="city"
+                    placeholder="E.g. Ikeja"
+                    required
+                    value={geography.city}
+                    onChange={handleGeographyChange}
+                  />
+                </div>
                 <div className="flex justify-between">
                   <Button variant="outline" type="button" onClick={prev}>Back</Button>
                   <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700">Next</Button>
