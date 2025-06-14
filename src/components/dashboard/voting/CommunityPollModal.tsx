@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -32,9 +31,17 @@ interface CommunityPollModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   groupName: string;
+  currentUser: { id: string; role: string; isAdmin?: boolean };
+  votingRestriction?: "everyone" | "trustees";
 }
 
-export const CommunityPollModal = ({ open, onOpenChange, groupName }: CommunityPollModalProps) => {
+export const CommunityPollModal = ({
+  open,
+  onOpenChange,
+  groupName,
+  currentUser,
+  votingRestriction = "everyone"
+}: CommunityPollModalProps) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'active' | 'create'>('active');
   const [selectedOption, setSelectedOption] = useState<string>("");
@@ -159,6 +166,16 @@ export const CommunityPollModal = ({ open, onOpenChange, groupName }: CommunityP
     return total > 0 ? Math.round((votes / total) * 100) : 0;
   };
 
+  // Only admin can create new poll
+  const canCreatePoll = !!(currentUser && (currentUser.isAdmin || currentUser.role === "admin"));
+
+  // Only those allowed by votingRestriction can vote
+  const canVote =
+    votingRestriction === "everyone"
+      ? true
+      : currentUser &&
+        (currentUser.isAdmin || currentUser.role === "admin" || currentUser.role === "trustee");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
@@ -180,14 +197,16 @@ export const CommunityPollModal = ({ open, onOpenChange, groupName }: CommunityP
               <Vote className="w-4 h-4 mr-2" />
               Active Polls
             </Button>
-            <Button
-              variant={activeTab === 'create' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('create')}
-              size="sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Poll
-            </Button>
+            {canCreatePoll && (
+              <Button
+                variant={activeTab === 'create' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('create')}
+                size="sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Poll
+              </Button>
+            )}
           </div>
 
           {/* Active Polls Tab */}
@@ -219,9 +238,8 @@ export const CommunityPollModal = ({ open, onOpenChange, groupName }: CommunityP
                     <div className="text-sm text-gray-600">
                       Created by {poll.createdBy} • {poll.totalVotes} total votes
                     </div>
-
                     {/* Voting Options */}
-                    {poll.status === 'active' && !poll.userVoted ? (
+                    {(poll.status === 'active' && !poll.userVoted && canVote) ? (
                       <div className="space-y-3">
                         <RadioGroup 
                           value={selectedOption} 
@@ -246,28 +264,34 @@ export const CommunityPollModal = ({ open, onOpenChange, groupName }: CommunityP
                         </Button>
                       </div>
                     ) : (
-                      // Results View
-                      <div className="space-y-3">
-                        {poll.userVoted && (
-                          <Badge className="bg-blue-100 text-blue-700">
-                            You voted for: {poll.options.find(opt => opt.id === poll.userVoted)?.text}
-                          </Badge>
-                        )}
-                        
-                        {poll.options.map((option) => (
-                          <div key={option.id} className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium">{option.text}</span>
-                              <span className="text-sm text-gray-600">
-                                {option.votes} votes ({getVotePercentage(option.votes, poll.totalVotes)}%)
-                              </span>
-                            </div>
-                            <Progress 
-                              value={getVotePercentage(option.votes, poll.totalVotes)} 
-                              className="h-2"
-                            />
+                      // If can't vote, show info and fallback to results/results view
+                      <div>
+                        {!canVote && poll.status === 'active' && (
+                          <div className="mb-3 text-sm text-yellow-700 bg-yellow-100 py-2 px-3 rounded">
+                            Only trustees/admins are allowed to vote in this poll.
                           </div>
-                        ))}
+                        )}
+                        <div className="space-y-3">
+                          {poll.userVoted && (
+                            <Badge className="bg-blue-100 text-blue-700">
+                              You voted for: {poll.options.find(opt => opt.id === poll.userVoted)?.text}
+                            </Badge>
+                          )}
+                          {poll.options.map((option) => (
+                            <div key={option.id} className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium">{option.text}</span>
+                                <span className="text-sm text-gray-600">
+                                  {option.votes} votes ({getVotePercentage(option.votes, poll.totalVotes)}%)
+                                </span>
+                              </div>
+                              <Progress 
+                                value={getVotePercentage(option.votes, poll.totalVotes)} 
+                                className="h-2"
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -277,7 +301,7 @@ export const CommunityPollModal = ({ open, onOpenChange, groupName }: CommunityP
           )}
 
           {/* Create Poll Tab */}
-          {activeTab === 'create' && (
+          {activeTab === 'create' && canCreatePoll && (
             <div className="space-y-4">
               <Card>
                 <CardHeader>
@@ -297,7 +321,6 @@ export const CommunityPollModal = ({ open, onOpenChange, groupName }: CommunityP
                       onChange={(e) => setNewPollTitle(e.target.value)}
                     />
                   </div>
-
                   <div>
                     <Label htmlFor="poll-description">Description</Label>
                     <Textarea
@@ -307,7 +330,6 @@ export const CommunityPollModal = ({ open, onOpenChange, groupName }: CommunityP
                       onChange={(e) => setNewPollDescription(e.target.value)}
                     />
                   </div>
-
                   <div>
                     <div className="flex justify-between items-center mb-2">
                       <Label>Poll Options</Label>
@@ -321,7 +343,6 @@ export const CommunityPollModal = ({ open, onOpenChange, groupName }: CommunityP
                         Add Option
                       </Button>
                     </div>
-                    
                     <div className="space-y-2">
                       {newPollOptions.map((option, index) => (
                         <div key={index} className="flex space-x-2">
@@ -343,7 +364,6 @@ export const CommunityPollModal = ({ open, onOpenChange, groupName }: CommunityP
                       ))}
                     </div>
                   </div>
-
                   <Button 
                     onClick={createPoll}
                     className="w-full bg-emerald-600 hover:bg-emerald-700"

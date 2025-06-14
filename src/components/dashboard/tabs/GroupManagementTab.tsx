@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { TrusteeVotingModal } from "../voting/TrusteeVotingModal";
 import { DisbursementApprovalModal } from "../voting/DisbursementApprovalModal";
 import { AuditLogModal } from "../voting/AuditLogModal";
@@ -23,11 +24,13 @@ export const GroupManagementTab = () => {
   const [disbursementOpen, setDisbursementOpen] = useState(false);
   const [auditLogOpen, setAuditLogOpen] = useState(false);
   const [communityPollOpen, setCommunityPollOpen] = useState(false);
+  const [votingRestriction, setVotingRestriction] = useState<"everyone" | "trustees">("everyone"); // default to everyone
 
   // Mock user data - in real app this would come from auth/context
   const currentUser = {
     id: 'user123',
-    role: 'trustee' as const, // Change to 'member' to test member view
+    role: 'trustee' as const, // Change to 'admin', 'trustee', or 'member'
+    isAdmin: true, // Change to true for admin, false for non-admin
   };
 
   const currentGroup = "Family Circle";
@@ -44,6 +47,35 @@ export const GroupManagementTab = () => {
             </CardDescription>
           </CardHeader>
         </Card>
+
+        {/* Voting Restriction Setting (Admins only) */}
+        {currentUser.isAdmin && (
+          <Card className="border-emerald-100">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Vote className="w-5 h-5 text-emerald-600" />
+                <span>Voting Permissions</span>
+              </CardTitle>
+              <CardDescription>
+                Who is allowed to participate in group votes and decision polls?
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-5">
+                <span className="font-medium">Only Admins/Trustees</span>
+                <Switch
+                  checked={votingRestriction === "everyone"}
+                  onCheckedChange={(state) => setVotingRestriction(state ? "everyone" : "trustees")}
+                  id="voting-permission-toggle"
+                />
+                <span className="font-medium">Everyone</span>
+              </div>
+              <div className="text-xs text-gray-500 mt-2">
+                When enabled, all group members may participate in votes and community polls. Otherwise, only admins and trustees have voting access.
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Current Trustees */}
         <Card className="border-emerald-100">
@@ -189,6 +221,7 @@ export const GroupManagementTab = () => {
         open={trusteeVotingOpen} 
         onOpenChange={setTrusteeVotingOpen}
         groupName={currentGroup}
+        // pass votingRestriction to modal (optional, depends on deeper implementation)
       />
 
       <DisbursementApprovalModal 
@@ -208,7 +241,10 @@ export const GroupManagementTab = () => {
         open={communityPollOpen} 
         onOpenChange={setCommunityPollOpen}
         groupName={currentGroup}
+        currentUser={currentUser}
+        votingRestriction={votingRestriction}
       />
     </>
   );
 };
+
