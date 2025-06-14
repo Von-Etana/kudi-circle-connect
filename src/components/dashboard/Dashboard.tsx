@@ -9,6 +9,8 @@ import { QuickActions } from "./QuickActions";
 import { AjoTabContent } from "./tabs/AjoTabContent";
 import { DuesTabContent } from "./tabs/DuesTabContent";
 import { CrowdfundingTabContent } from "./tabs/CrowdfundingTabContent";
+import { Settings } from "./Settings";
+import { UserProfile } from "./UserProfile";
 
 export const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -20,18 +22,24 @@ export const Dashboard = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-4 bg-white border border-emerald-100">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-6 bg-white border border-emerald-100">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-xs sm:text-sm">
               Dashboard
             </TabsTrigger>
-            <TabsTrigger value="ajo" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <TabsTrigger value="ajo" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-xs sm:text-sm">
               Ajo
             </TabsTrigger>
-            <TabsTrigger value="dues" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <TabsTrigger value="dues" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-xs sm:text-sm">
               Dues
             </TabsTrigger>
-            <TabsTrigger value="crowd" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <TabsTrigger value="crowd" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-xs sm:text-sm">
               Crowdfunding
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-xs sm:text-sm">
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-xs sm:text-sm">
+              Settings
             </TabsTrigger>
           </TabsList>
 
@@ -60,6 +68,14 @@ export const Dashboard = () => {
 
           <TabsContent value="crowd" className="space-y-6">
             <CrowdfundingTabContent />
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-6">
+            <UserProfile />
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <Settings />
           </TabsContent>
         </Tabs>
       </main>
