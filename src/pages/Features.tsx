@@ -1,8 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins, Users, Shield, Wallet, Vote, Bell, FileText, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import Footer from "@/components/Footer";
 
 const Features = () => {
   const mainFeatures = [
@@ -235,6 +235,7 @@ const Features = () => {
           </Link>
         </div>
       </section>
+      <Footer />
     </div>
   );
 };
