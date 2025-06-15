@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,16 +16,13 @@ import {
   Clock,
   CheckCircle
 } from "lucide-react";
+import { CreateAjoGroupModal } from "../modals/CreateAjoGroupModal";
+import { AjoDetailsModal } from "../modals/AjoDetailsModal";
 
 export const AjoTabContent = () => {
   const { toast } = useToast();
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newGroup, setNewGroup] = useState({
-    name: "",
-    amount: "",
-    frequency: "weekly",
-    duration: "12"
-  });
+  const [showCreate, setShowCreate] = useState(false);
+  const [detailsGroup, setDetailsGroup] = useState<any>(null);
 
   const ajoGroups = [
     {
@@ -76,24 +72,7 @@ export const AjoTabContent = () => {
     }
   ];
 
-  const handleCreateGroup = () => {
-    if (!newGroup.name || !newGroup.amount) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Ajo Group Created",
-      description: `${newGroup.name} has been created successfully! Invite members to get started.`,
-    });
-    
-    setShowCreateForm(false);
-    setNewGroup({ name: "", amount: "", frequency: "weekly", duration: "12" });
-  };
+  const handleCreateGroup = () => setShowCreate(true);
 
   const handleJoinGroup = (groupName: string) => {
     toast({
@@ -117,7 +96,7 @@ export const AjoTabContent = () => {
           <p className="text-gray-600">Rotating savings with your community groups</p>
         </div>
         <Button 
-          onClick={() => setShowCreateForm(!showCreateForm)}
+          onClick={handleCreateGroup}
           className="bg-emerald-600 hover:bg-emerald-700"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -125,47 +104,7 @@ export const AjoTabContent = () => {
         </Button>
       </div>
 
-      {showCreateForm && (
-        <Card className="border-emerald-100 bg-emerald-50">
-          <CardHeader>
-            <CardTitle className="text-emerald-800">Create New Ajo Group</CardTitle>
-            <CardDescription>Set up a rotating savings group with your community</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="groupName">Group Name</Label>
-                <Input
-                  id="groupName"
-                  placeholder="e.g., Friends Circle"
-                  value={newGroup.name}
-                  onChange={(e) => setNewGroup(prev => ({ ...prev, name: e.target.value }))}
-                  className="border-emerald-200 focus:border-emerald-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="amount">Contribution Amount (₦)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  placeholder="e.g., 10000"
-                  value={newGroup.amount}
-                  onChange={(e) => setNewGroup(prev => ({ ...prev, amount: e.target.value }))}
-                  className="border-emerald-200 focus:border-emerald-500"
-                />
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <Button onClick={handleCreateGroup} className="bg-emerald-600 hover:bg-emerald-700">
-                Create Group
-              </Button>
-              <Button variant="outline" onClick={() => setShowCreateForm(false)}>
-                Cancel
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <CreateAjoGroupModal open={showCreate} onOpenChange={setShowCreate} />
 
       <div className="grid gap-6">
         {ajoGroups.map((group) => (
@@ -240,13 +179,17 @@ export const AjoTabContent = () => {
                       <DollarSign className="w-4 h-4 mr-1" />
                       Contribute
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm"
+                      onClick={() => setDetailsGroup(group)}
+                    >
                       View Details
                     </Button>
                   </>
                 )}
                 {group.status === 'completed' && (
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm"
+                    onClick={() => setDetailsGroup(group)}
+                  >
                     <CheckCircle className="w-4 h-4 mr-1" />
                     View Summary
                   </Button>
@@ -256,7 +199,7 @@ export const AjoTabContent = () => {
           </Card>
         ))}
       </div>
-
+      <AjoDetailsModal open={!!detailsGroup} group={detailsGroup} onOpenChange={open => !open && setDetailsGroup(null)} />
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-emerald-100">

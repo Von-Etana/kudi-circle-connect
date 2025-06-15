@@ -1,17 +1,33 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Wallet } from "lucide-react";
+import { useState } from "react";
+import { CreateCommunityDuesModal } from "../modals/CreateCommunityDuesModal";
+import { PayDuesModal } from "../modals/PayDuesModal";
 
 export const DuesTabContent = () => {
+  const [showCreate, setShowCreate] = useState(false);
+  const [showPay, setShowPay] = useState(false);
+
   return (
     <Card className="border-emerald-100">
-      <CardHeader>
-        <CardTitle className="text-emerald-800">Community Dues</CardTitle>
-        <CardDescription>
-          Track and manage your group dues and payments
-        </CardDescription>
+      <CardHeader className="flex flex-col gap-2">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-emerald-800">Community Dues</CardTitle>
+            <CardDescription>
+              Track and manage your group dues and payments
+            </CardDescription>
+          </div>
+          <Button
+            className="bg-emerald-100/90 text-emerald-700 hover:bg-emerald-200"
+            onClick={() => setShowCreate(true)}
+            size="sm"
+          >
+            + Create Dues
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -40,11 +56,16 @@ export const DuesTabContent = () => {
           </div>
         </div>
         
-        <Button className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700">
+        <Button
+          className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700"
+          onClick={() => setShowPay(true)}
+        >
           <Wallet className="w-4 h-4 mr-2" />
           Pay Outstanding Dues
         </Button>
       </CardContent>
+      <CreateCommunityDuesModal open={showCreate} onOpenChange={setShowCreate} />
+      <PayDuesModal open={showPay} onOpenChange={setShowPay} duesTitle="Estate Security Dues" amount={15000} />
     </Card>
   );
 };
