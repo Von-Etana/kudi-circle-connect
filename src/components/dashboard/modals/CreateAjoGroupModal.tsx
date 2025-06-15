@@ -64,15 +64,15 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md w-full px-2 sm:px-8">
         <DialogHeader>
           <DialogTitle>Create Ajo Group</DialogTitle>
           <DialogDescription>
             Set up a new Ajo (rotating savings) group for your circle.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
+        <form className="flex flex-col gap-3 w-full" onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="name">Group Name *</Label>
             <Input
               id="name"
@@ -80,9 +80,10 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
               placeholder="e.g., Family Circle"
               value={formData.name}
               onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
+              className="w-full"
             />
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="amount">Contribution Amount (₦) *</Label>
             <Input
               id="amount"
@@ -92,15 +93,16 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
               placeholder="e.g., 5000"
               value={formData.amount}
               onChange={e => setFormData(f => ({ ...f, amount: e.target.value }))}
+              className="w-full"
             />
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="rotationType">Rotation Type</Label>
             <Select
               value={formData.rotationType}
               onValueChange={val => setFormData(f => ({ ...f, rotationType: val }))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose rotation" />
               </SelectTrigger>
               <SelectContent>
@@ -109,13 +111,13 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="frequency">Frequency</Label>
             <Select
               value={formData.frequency}
               onValueChange={val => setFormData(f => ({ ...f, frequency: val }))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select frequency" />
               </SelectTrigger>
               <SelectContent>
@@ -125,13 +127,13 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="duration">Duration</Label>
             <Select
               value={formData.duration}
               onValueChange={val => setFormData(f => ({ ...f, duration: val }))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select duration" />
               </SelectTrigger>
               <SelectContent>
@@ -141,7 +143,7 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="maxMembers">Max Members</Label>
             <Input
               id="maxMembers"
@@ -150,9 +152,10 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
               placeholder="e.g., 8"
               value={formData.maxMembers}
               onChange={e => setFormData(f => ({ ...f, maxMembers: e.target.value }))}
+              className="w-full"
             />
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
@@ -160,14 +163,20 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
               value={formData.description}
               onChange={e => setFormData(f => ({ ...f, description: e.target.value }))}
               rows={3}
+              className="w-full"
             />
           </div>
-          <div className="flex gap-2 pt-2">
-            <Button className="bg-emerald-600 hover:bg-emerald-700 flex-1" type="submit">Create Ajo</Button>
-            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <div className="flex flex-col xs:flex-row gap-2 pt-2">
+            <Button className="bg-emerald-600 hover:bg-emerald-700 flex-1 w-full" type="submit">
+              Create Ajo
+            </Button>
+            <Button variant="outline" type="button" onClick={() => onOpenChange(false)} className="flex-1 w-full">
+              Cancel
+            </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
+

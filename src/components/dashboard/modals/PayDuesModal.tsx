@@ -26,7 +26,7 @@ export function PayDuesModal({ open, onOpenChange, duesTitle = "Outstanding Dues
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xs">
+      <DialogContent className="max-w-xs w-full px-2 sm:px-6">
         <DialogHeader>
           <DialogTitle>Pay Dues</DialogTitle>
           <DialogDescription>
@@ -37,13 +37,14 @@ export function PayDuesModal({ open, onOpenChange, duesTitle = "Outstanding Dues
           <div className="mb-1 text-sm">Dues Title</div>
           <div className="font-semibold">{duesTitle}</div>
         </div>
-        <div className="mb-4">
+        <div className="mb-4 flex flex-col">
           <div className="mb-1 text-sm">Amount (₦)</div>
           <Input
             type="number"
             min={0}
             value={payAmount}
             onChange={e => setPayAmount(+e.target.value)}
+            className="w-full"
           />
         </div>
         <DialogFooter>
@@ -55,3 +56,4 @@ export function PayDuesModal({ open, onOpenChange, duesTitle = "Outstanding Dues
     </Dialog>
   );
 }
+

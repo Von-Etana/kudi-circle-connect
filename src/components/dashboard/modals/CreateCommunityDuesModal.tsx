@@ -65,15 +65,15 @@ export function CreateCommunityDuesModal({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md w-full px-2 sm:px-8">
         <DialogHeader>
           <DialogTitle>Create Community Dues</DialogTitle>
           <DialogDescription>
             Launch a new community dues collection for your group or association.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
+        <form className="flex flex-col gap-3 w-full" onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="name">Dues Title *</Label>
             <Input
               id="name"
@@ -81,9 +81,10 @@ export function CreateCommunityDuesModal({ open, onOpenChange }: Props) {
               required
               value={formData.name}
               onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
+              className="w-full"
             />
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="amount">Amount (₦) *</Label>
             <Input
               id="amount"
@@ -93,15 +94,16 @@ export function CreateCommunityDuesModal({ open, onOpenChange }: Props) {
               placeholder="e.g., 10000"
               value={formData.amount}
               onChange={e => setFormData(f => ({ ...f, amount: e.target.value }))}
+              className="w-full"
             />
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="frequency">Frequency</Label>
             <Select
               value={formData.frequency}
               onValueChange={val => setFormData(f => ({ ...f, frequency: val }))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select frequency" />
               </SelectTrigger>
               <SelectContent>
@@ -111,13 +113,13 @@ export function CreateCommunityDuesModal({ open, onOpenChange }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="duration">Duration</Label>
             <Select
               value={formData.duration}
               onValueChange={val => setFormData(f => ({ ...f, duration: val }))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select duration" />
               </SelectTrigger>
               <SelectContent>
@@ -127,16 +129,17 @@ export function CreateCommunityDuesModal({ open, onOpenChange }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="deadline">Deadline</Label>
             <Input
               id="deadline"
               type="date"
               value={formData.deadline}
               onChange={e => setFormData(f => ({ ...f, deadline: e.target.value }))}
+              className="w-full"
             />
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="maxMembers">Max Members</Label>
             <Input
               id="maxMembers"
@@ -145,9 +148,10 @@ export function CreateCommunityDuesModal({ open, onOpenChange }: Props) {
               placeholder="e.g., 10"
               value={formData.maxMembers}
               onChange={e => setFormData(f => ({ ...f, maxMembers: e.target.value }))}
+              className="w-full"
             />
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
@@ -155,14 +159,20 @@ export function CreateCommunityDuesModal({ open, onOpenChange }: Props) {
               value={formData.description}
               onChange={e => setFormData(f => ({ ...f, description: e.target.value }))}
               rows={3}
+              className="w-full"
             />
           </div>
-          <div className="flex gap-2 pt-2">
-            <Button className="bg-emerald-600 hover:bg-emerald-700 flex-1" type="submit">Create Dues</Button>
-            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <div className="flex flex-col xs:flex-row gap-2 pt-2">
+            <Button className="bg-emerald-600 hover:bg-emerald-700 flex-1 w-full" type="submit">
+              Create Dues
+            </Button>
+            <Button variant="outline" type="button" onClick={() => onOpenChange(false)} className="flex-1 w-full">
+              Cancel
+            </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
+
