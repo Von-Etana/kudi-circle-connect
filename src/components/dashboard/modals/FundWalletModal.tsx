@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -94,7 +93,7 @@ export const FundWalletModal = ({ open, onOpenChange }: FundWalletModalProps) =>
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-[500px] p-3 sm:p-6">
         <DialogHeader>
           <DialogTitle>Fund Wallet</DialogTitle>
           <DialogDescription>
@@ -104,21 +103,23 @@ export const FundWalletModal = ({ open, onOpenChange }: FundWalletModalProps) =>
 
         <div className="space-y-4">
           {/* Current Balance */}
-          <Card className="bg-emerald-50 border-emerald-100">
-            <CardContent className="p-4">
+          <Card className="bg-emerald-50 border-emerald-100 rounded-md sm:rounded-lg">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-5 h-5 text-emerald-600" />
                 <div>
-                  <p className="text-sm text-gray-600">Current Balance</p>
-                  <p className="text-xl font-semibold text-emerald-800">₦{currentBalance.toLocaleString()}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Current Balance</p>
+                  <p className="text-lg sm:text-xl font-semibold text-emerald-800">
+                    ₦{currentBalance.toLocaleString()}
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Amount Input */}
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount to Add (₦)</Label>
+          <div className="space-y-1">
+            <Label htmlFor="amount" className="text-sm">Amount to Add (₦)</Label>
             <Input
               id="amount"
               type="number"
@@ -126,20 +127,26 @@ export const FundWalletModal = ({ open, onOpenChange }: FundWalletModalProps) =>
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               min="100"
+              className="h-10 text-base sm:text-sm"
             />
           </div>
 
           {/* Quick Amount Buttons */}
-          <div className="space-y-2">
-            <Label>Quick Select</Label>
-            <div className="grid grid-cols-3 gap-2">
+          <div className="space-y-1">
+            <Label className="text-sm">Quick Select</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {quickAmounts.map((quickAmount) => (
                 <Button
                   key={quickAmount}
                   variant="outline"
                   size="sm"
                   onClick={() => selectQuickAmount(quickAmount)}
-                  className={amount === quickAmount.toString() ? "border-emerald-500 bg-emerald-50" : ""}
+                  className={
+                    "w-full py-2 " +
+                    (amount === quickAmount.toString()
+                      ? "border-emerald-500 bg-emerald-50"
+                      : "")
+                  }
                 >
                   ₦{quickAmount.toLocaleString()}
                 </Button>
@@ -148,29 +155,29 @@ export const FundWalletModal = ({ open, onOpenChange }: FundWalletModalProps) =>
           </div>
 
           {/* Payment Methods */}
-          <div className="space-y-2">
-            <Label>Payment Method</Label>
-            <div className="space-y-2">
+          <div className="space-y-1">
+            <Label className="text-sm">Payment Method</Label>
+            <div className="flex flex-col gap-2">
               {paymentMethods.map((method) => {
                 const Icon = method.icon;
                 return (
-                  <Card 
-                    key={method.id} 
+                  <Card
+                    key={method.id}
                     className={`cursor-pointer transition-all ${
-                      selectedMethod === method.id 
-                        ? 'border-emerald-500 bg-emerald-50' 
-                        : 'border-gray-200 hover:border-emerald-300'
-                    }`}
+                      selectedMethod === method.id
+                        ? "border-emerald-500 bg-emerald-50"
+                        : "border-gray-200 hover:border-emerald-300"
+                    } rounded-md sm:rounded-lg`}
                     onClick={() => setSelectedMethod(method.id)}
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-3 sm:p-4">
                       <div className="flex items-center space-x-3">
                         <Icon className="w-5 h-5 text-gray-600" />
                         <div className="flex-1">
-                          <p className="font-medium">{method.name}</p>
-                          <p className="text-sm text-gray-600">{method.description}</p>
+                          <p className="font-medium text-sm">{method.name}</p>
+                          <p className="text-xs sm:text-sm text-gray-600">{method.description}</p>
                         </div>
-                        <div className="text-right text-sm">
+                        <div className="text-right text-xs sm:text-sm">
                           <p className="text-gray-600">Fee: {method.fee}</p>
                           <p className="text-gray-500">{method.processingTime}</p>
                         </div>
@@ -184,9 +191,11 @@ export const FundWalletModal = ({ open, onOpenChange }: FundWalletModalProps) =>
 
           {/* Transaction Summary */}
           {amount && selectedMethodInfo && (
-            <Card className="bg-gray-50 border-gray-200">
-              <CardContent className="p-4">
-                <h4 className="font-medium mb-2">Transaction Summary</h4>
+            <Card className="bg-gray-50 border-gray-200 rounded-md sm:rounded-lg">
+              <CardContent className="p-3 sm:p-4">
+                <h4 className="font-medium mb-2 text-base sm:text-lg">
+                  Transaction Summary
+                </h4>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span>Amount:</span>
@@ -198,7 +207,17 @@ export const FundWalletModal = ({ open, onOpenChange }: FundWalletModalProps) =>
                   </div>
                   <div className="flex justify-between font-medium border-t pt-1">
                     <span>Total:</span>
-                    <span>₦{(parseFloat(amount || "0") + (selectedMethodInfo.fee.includes('%') ? parseFloat(amount || "0") * 0.015 : parseFloat(selectedMethodInfo.fee.replace('₦', '')))).toLocaleString()}</span>
+                    <span>
+                      ₦
+                      {(
+                        parseFloat(amount || "0") +
+                        (selectedMethodInfo.fee.includes("%")
+                          ? parseFloat(amount || "0") * 0.015
+                          : parseFloat(
+                              selectedMethodInfo.fee.replace("₦", "")
+                            ))
+                      ).toLocaleString()}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -206,15 +225,19 @@ export const FundWalletModal = ({ open, onOpenChange }: FundWalletModalProps) =>
           )}
 
           {/* Action Buttons */}
-          <div className="flex space-x-2 pt-4">
-            <Button 
-              onClick={handleFunding} 
-              className="bg-emerald-600 hover:bg-emerald-700 flex-1"
+          <div className="flex flex-col sm:flex-row gap-2 pt-4">
+            <Button
+              onClick={handleFunding}
+              className="bg-emerald-600 hover:bg-emerald-700 flex-1 w-full sm:w-auto"
               disabled={!amount || !selectedMethod}
             >
               Fund Wallet
             </Button>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="flex-1 w-full sm:w-auto"
+            >
               Cancel
             </Button>
           </div>
