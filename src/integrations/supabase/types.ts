@@ -14,7 +14,253 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ajo_groups: {
+        Row: {
+          contribution_amount: number
+          created_at: string
+          created_by: string
+          current_members: number
+          description: string | null
+          frequency: string
+          id: string
+          max_members: number
+          name: string
+          next_payout_date: string | null
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contribution_amount: number
+          created_at?: string
+          created_by: string
+          current_members?: number
+          description?: string | null
+          frequency: string
+          id?: string
+          max_members?: number
+          name: string
+          next_payout_date?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          contribution_amount?: number
+          created_at?: string
+          created_by?: string
+          current_members?: number
+          description?: string | null
+          frequency?: string
+          id?: string
+          max_members?: number
+          name?: string
+          next_payout_date?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ajo_memberships: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          payout_received: boolean
+          position: number
+          status: string
+          total_contributed: number
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          payout_received?: boolean
+          position: number
+          status?: string
+          total_contributed?: number
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          payout_received?: boolean
+          position?: number
+          status?: string
+          total_contributed?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ajo_memberships_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "ajo_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          current_amount: number
+          description: string
+          end_date: string | null
+          id: string
+          image_url: string | null
+          status: string
+          target_amount: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          current_amount?: number
+          description: string
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          status?: string
+          target_amount: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          current_amount?: number
+          description?: string
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          status?: string
+          target_amount?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string
+          date_of_birth: string | null
+          full_name: string | null
+          id: string
+          kyc_status: string | null
+          phone_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          full_name?: string | null
+          id?: string
+          kyc_status?: string | null
+          phone_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          full_name?: string | null
+          id?: string
+          kyc_status?: string | null
+          phone_number?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          reference_id: string | null
+          status: string
+          type: string
+          user_id: string
+          wallet_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          status?: string
+          type: string
+          user_id: string
+          wallet_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+          wallet_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          id: string
+          updated_at: string
+          user_id: string
+          wallet_type: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          wallet_type?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          wallet_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
