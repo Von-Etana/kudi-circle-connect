@@ -73,14 +73,14 @@ const Landing = () => {
               <Link to="/features" className="text-gray-600 hover:text-emerald-600 transition-colors">Features</Link>
               <Link to="/about" className="text-gray-600 hover:text-emerald-600 transition-colors">About</Link>
               <Link to="/contact" className="text-gray-600 hover:text-emerald-600 transition-colors">Contact</Link>
-              <Link to="/dashboard">
+              <Link to="/auth">
                 <Button className="bg-emerald-600 hover:bg-emerald-700">
                   Get Started
                 </Button>
               </Link>
             </nav>
             <div className="md:hidden">
-              <Link to="/dashboard">
+              <Link to="/auth">
                 <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
                   Start
                 </Button>
@@ -106,7 +106,7 @@ const Landing = () => {
               financial management. From Ajo to crowdfunding, we've got you covered.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/dashboard">
+              <Link to="/auth">
                 <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto">
                   Start Your Community
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -215,7 +215,7 @@ const Landing = () => {
           <p className="text-lg text-gray-600 mb-8">
             Join thousands of communities already benefiting from transparent financial management
           </p>
-          <Link to="/dashboard">
+          <Link to="/auth">
             <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700">
               Get Started Today
               <ArrowRight className="w-4 h-4 ml-2" />
