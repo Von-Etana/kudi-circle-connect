@@ -61,7 +61,7 @@ export const useAjoGroups = () => {
           .from('ajo_groups')
           .select('*')
           .eq('status', 'open')
-          .lt('current_members', supabase.rpc('max_members'))
+          .filter('current_members', 'lt', 'max_members')
 
         if (availableError) throw availableError
 
