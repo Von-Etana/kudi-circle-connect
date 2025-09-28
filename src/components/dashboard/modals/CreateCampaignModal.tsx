@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useCampaigns } from "@/hooks/useCampaigns";
 import { DollarSign, Target, Calendar, Shield, AlertTriangle } from "lucide-react";
 import { KYCVerificationModal } from "./KYCVerificationModal";
 
@@ -16,8 +17,10 @@ interface CreateCampaignModalProps {
 
 export const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) => {
   const { toast } = useToast();
+  const { createCampaign } = useCampaigns();
   const [isKYCVerified, setIsKYCVerified] = useState(false); // In real app, this would come from user context
   const [showKYCModal, setShowKYCModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -41,7 +44,7 @@ export const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalP
     handleSubmit(new Event('submit') as any);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.title || !formData.description || !formData.goalAmount || !formData.category) {
@@ -53,22 +56,37 @@ export const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalP
       return;
     }
 
-    toast({
-      title: "Campaign Created!",
-      description: `Your campaign "${formData.title}" has been created successfully and is pending approval.`,
-    });
+    setIsSubmitting(true);
+    try {
+      const endDate = formData.duration ? 
+        new Date(Date.now() + parseInt(formData.duration) * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : 
+        undefined;
 
-    // Reset form
-    setFormData({
-      title: "",
-      description: "",
-      goalAmount: "",
-      category: "",
-      duration: "",
-      imageUrl: ""
-    });
+      await createCampaign({
+        title: formData.title,
+        description: formData.description,
+        target_amount: parseFloat(formData.goalAmount),
+        category: formData.category,
+        end_date: endDate,
+        image_url: formData.imageUrl || null
+      });
 
-    onOpenChange(false);
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        goalAmount: "",
+        category: "",
+        duration: "",
+        imageUrl: ""
+      });
+
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleKYCComplete = () => {
@@ -214,9 +232,10 @@ export const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalP
               <Button
                 type="button"
                 onClick={handleCreateCampaign}
+                disabled={isSubmitting}
                 className={isKYCVerified ? "bg-emerald-600 hover:bg-emerald-700" : "bg-amber-600 hover:bg-amber-700"}
               >
-                {isKYCVerified ? (
+                {isSubmitting ? "Creating..." : isKYCVerified ? (
                   <>
                     <Target className="w-4 h-4 mr-2" />
                     Create Campaign

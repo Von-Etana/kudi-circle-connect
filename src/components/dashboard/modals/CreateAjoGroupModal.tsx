@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useAjoGroups } from "@/hooks/useAjoGroups";
 import { useState } from "react";
 
 interface Props {
@@ -15,6 +16,8 @@ interface Props {
 
 export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
   const { toast } = useToast();
+  const { createAjoGroup } = useAjoGroups();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     amount: "",
@@ -36,9 +39,9 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
     { label: "12 months", value: "12" },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.amount) {
+    if (!formData.name || !formData.amount || !formData.frequency) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields.",
@@ -46,20 +49,32 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
       });
       return;
     }
-    toast({
-      title: "Ajo Group Created!",
-      description: `${formData.name} group has been created. Invite members to start saving together!`,
-    });
-    setFormData({
-      name: "",
-      amount: "",
-      frequency: "",
-      duration: "",
-      rotationType: "",
-      description: "",
-      maxMembers: "",
-    });
-    onOpenChange(false);
+
+    setIsSubmitting(true);
+    try {
+      await createAjoGroup({
+        name: formData.name,
+        contribution_amount: parseFloat(formData.amount),
+        frequency: formData.frequency,
+        description: formData.description || null,
+        max_members: formData.maxMembers ? parseInt(formData.maxMembers) : 10
+      });
+
+      setFormData({
+        name: "",
+        amount: "",
+        frequency: "",
+        duration: "",
+        rotationType: "",
+        description: "",
+        maxMembers: "",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error creating Ajo group:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -167,8 +182,12 @@ export function CreateAjoGroupModal({ open, onOpenChange }: Props) {
             />
           </div>
           <div className="flex flex-col xs:flex-row gap-2 pt-2">
-            <Button className="bg-emerald-600 hover:bg-emerald-700 flex-1 w-full" type="submit">
-              Create Ajo
+            <Button 
+              className="bg-emerald-600 hover:bg-emerald-700 flex-1 w-full" 
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Create Ajo"}
             </Button>
             <Button variant="outline" type="button" onClick={() => onOpenChange(false)} className="flex-1 w-full">
               Cancel
