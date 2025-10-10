@@ -7,116 +7,54 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, XCircle, Clock, DollarSign, User, FileText } from "lucide-react";
-
-interface DisbursementRequest {
-  id: string;
-  requestedBy: string;
-  amount: number;
-  purpose: string;
-  category: 'thrift' | 'dues' | 'crowdfunding';
-  dateRequested: string;
-  approvals: Array<{
-    trusteeId: string;
-    trusteeName: string;
-    status: 'approved' | 'rejected' | 'pending';
-    comment?: string;
-    timestamp?: string;
-  }>;
-  status: 'pending' | 'approved' | 'rejected';
-}
+import { CheckCircle, XCircle, Clock, User, Info, Loader2 } from "lucide-react";
+import { useGovernance, Disbursement, GroupMember } from "@/hooks/useGovernance";
+import { format } from "date-fns";
 
 interface DisbursementApprovalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userRole: 'trustee' | 'member';
+  userRole: 'trustee' | 'member' | 'admin';
   userId: string;
+  disbursements: Disbursement[];
+  members: GroupMember[];
+  approveDisbursement: (disbursementId: string, decision: 'approved' | 'rejected', comment?: string) => Promise<void>;
+  loading: boolean;
 }
 
-export const DisbursementApprovalModal = ({ open, onOpenChange, userRole, userId }: DisbursementApprovalModalProps) => {
+export const DisbursementApprovalModal = ({
+  open,
+  onOpenChange,
+  userRole,
+  userId,
+  disbursements,
+  members,
+  approveDisbursement,
+  loading
+}: DisbursementApprovalModalProps) => {
   const { toast } = useToast();
   const [comment, setComment] = useState("");
-  const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
 
-  const [requests, setRequests] = useState<DisbursementRequest[]>([
-    {
-      id: '1',
-      requestedBy: 'John Adebayo',
-      amount: 50000,
-      purpose: 'Medical emergency fund for Mrs. Bello',
-      category: 'thrift',
-      dateRequested: '2024-06-10',
-      status: 'pending',
-      approvals: [
-        { trusteeId: 't1', trusteeName: 'Sarah Okafor', status: 'approved', comment: 'Valid emergency case', timestamp: '2024-06-10 14:30' },
-        { trusteeId: 't2', trusteeName: 'Mike Eze', status: 'pending' },
-      ]
-    },
-    {
-      id: '2',
-      requestedBy: 'Grace Bello',
-      amount: 25000,
-      purpose: 'Community hall maintenance',
-      category: 'dues',
-      dateRequested: '2024-06-12',
-      status: 'pending',
-      approvals: [
-        { trusteeId: 't1', trusteeName: 'Sarah Okafor', status: 'pending' },
-        { trusteeId: 't2', trusteeName: 'Mike Eze', status: 'pending' },
-      ]
+  const trustees = members.filter(m => m.role === 'trustee');
+  const currentUserIsTrustee = userRole === 'trustee' || userRole === 'admin';
+
+  const handleApproval = async (requestId: string, decision: 'approved' | 'rejected') => {
+    if (!currentUserIsTrustee) return;
+
+    setIsSubmitting(requestId);
+    try {
+      await approveDisbursement(requestId, decision, comment);
+      toast({
+        title: `Request ${decision}`,
+        description: `You have ${decision} the disbursement request.`,
+      });
+      setComment("");
+    } catch (error) {
+      // Error toast is handled by the hook
+    } finally {
+      setIsSubmitting(null);
     }
-  ]);
-
-  const trustees = [
-    { id: 't1', name: 'Sarah Okafor' },
-    { id: 't2', name: 'Mike Eze' }
-  ];
-
-  const currentUserIsTrustee = userRole === 'trustee';
-  const currentTrusteeId = currentUserIsTrustee ? 't2' : null; // Simulate current user being Mike Eze
-
-  const handleApproval = (requestId: string, decision: 'approved' | 'rejected') => {
-    if (!currentUserIsTrustee || !currentTrusteeId) return;
-
-    setRequests(prev => prev.map(request => {
-      if (request.id !== requestId) return request;
-
-      const updatedApprovals = request.approvals.map(approval => 
-        approval.trusteeId === currentTrusteeId
-          ? { 
-              ...approval, 
-              status: decision, 
-              comment: comment || undefined,
-              timestamp: new Date().toISOString()
-            }
-          : approval
-      );
-
-      // Check if request should be approved/rejected
-      const approvedCount = updatedApprovals.filter(a => a.status === 'approved').length;
-      const rejectedCount = updatedApprovals.filter(a => a.status === 'rejected').length;
-      
-      let newStatus = request.status;
-      if (rejectedCount > 0) {
-        newStatus = 'rejected';
-      } else if (approvedCount >= 2) {
-        newStatus = 'approved';
-      }
-
-      return {
-        ...request,
-        approvals: updatedApprovals,
-        status: newStatus
-      };
-    }));
-
-    toast({
-      title: `Request ${decision}`,
-      description: `You have ${decision} the disbursement request.`,
-    });
-
-    setComment("");
-    setSelectedRequest(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -127,13 +65,11 @@ export const DisbursementApprovalModal = ({ open, onOpenChange, userRole, userId
     }
   };
 
-  const getApprovalStatus = (request: DisbursementRequest) => {
-    const approvedCount = request.approvals.filter(a => a.status === 'approved').length;
-    const rejectedCount = request.approvals.filter(a => a.status === 'rejected').length;
-    
-    if (rejectedCount > 0) return 'Rejected';
-    if (approvedCount >= 2) return 'Approved';
-    return `${approvedCount}/2 Approvals`;
+  const getApprovalStatusText = (request: Disbursement) => {
+    const requiredApprovals = Math.min(2, trustees.length);
+    if (request.status === 'rejected') return 'Rejected';
+    if (request.status === 'approved') return 'Approved';
+    return `${request.approvals.length}/${requiredApprovals} Approvals`;
   };
 
   return (
@@ -149,135 +85,119 @@ export const DisbursementApprovalModal = ({ open, onOpenChange, userRole, userId
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {requests.map((request) => {
-            const userApproval = currentTrusteeId 
-              ? request.approvals.find(a => a.trusteeId === currentTrusteeId)
-              : null;
-            const hasUserVoted = userApproval?.status !== 'pending';
+        {loading ? (
+          <div className="flex justify-center items-center py-10">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+          </div>
+        ) : disbursements.length === 0 ? (
+          <div className="text-center py-10">
+            <Info className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-800">No Requests</h3>
+            <p className="text-gray-500">There are no pending disbursement requests.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {disbursements.map((request) => {
+              const userHasVoted = request.approvals.includes(userId);
+              const requestor = members.find(m => m.user_id === request.created_by);
 
-            return (
-              <Card key={request.id} className="border-emerald-100">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">₦{request.amount.toLocaleString()}</CardTitle>
-                      <CardDescription className="mt-1">
-                        Requested by {request.requestedBy} • {request.dateRequested}
-                      </CardDescription>
+              return (
+                <Card key={request.id} className="border-emerald-100">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg">₦{request.amount.toLocaleString()}</CardTitle>
+                        <CardDescription className="mt-1">
+                          Requested by {requestor?.name || 'Unknown User'} • {format(new Date(request.created_at), 'MMM dd, yyyy')}
+                        </CardDescription>
+                      </div>
+                      <div className="flex flex-col items-end space-y-2">
+                        <Badge className={getStatusColor(request.status)}>
+                          {request.status.toUpperCase()}
+                        </Badge>
+                        <Badge variant="outline">
+                          {getApprovalStatusText(request)}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="flex flex-col items-end space-y-2">
-                      <Badge className={getStatusColor(request.status)}>
-                        {request.status.toUpperCase()}
-                      </Badge>
-                      <Badge variant="outline">
-                        {getApprovalStatus(request)}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
                     <div>
                       <Label className="text-sm font-medium">Purpose</Label>
-                      <p className="text-sm text-gray-600">{request.purpose}</p>
+                      <p className="text-sm text-gray-600">{request.title}</p>
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium">Category</Label>
-                      <Badge variant="outline" className="ml-2">
-                        {request.category}
-                      </Badge>
-                    </div>
-                  </div>
 
-                  {/* Trustee Approvals */}
-                  <div>
-                    <Label className="text-sm font-medium">Trustee Approvals</Label>
-                    <div className="mt-2 space-y-2">
-                      {request.approvals.map((approval) => (
-                        <div key={approval.trusteeId} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                          <div className="flex items-center space-x-2">
-                            <User className="w-4 h-4" />
-                            <span className="text-sm font-medium">{approval.trusteeName}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            {approval.status === 'approved' && <CheckCircle className="w-4 h-4 text-green-600" />}
-                            {approval.status === 'rejected' && <XCircle className="w-4 h-4 text-red-600" />}
-                            {approval.status === 'pending' && <Clock className="w-4 h-4 text-yellow-600" />}
-                            <Badge className={getStatusColor(approval.status)}>
-                              {approval.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Comments */}
-                  {request.approvals.some(a => a.comment) && (
                     <div>
-                      <Label className="text-sm font-medium">Comments</Label>
+                      <Label className="text-sm font-medium">Trustee Approvals</Label>
                       <div className="mt-2 space-y-2">
-                        {request.approvals
-                          .filter(a => a.comment)
-                          .map((approval) => (
-                            <div key={approval.trusteeId} className="p-2 bg-blue-50 rounded text-sm">
-                              <span className="font-medium">{approval.trusteeName}:</span> {approval.comment}
+                        {trustees.map((trustee) => {
+                          const hasApproved = request.approvals.includes(trustee.user_id);
+                          return (
+                            <div key={trustee.user_id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div className="flex items-center space-x-2">
+                                <User className="w-4 h-4" />
+                                <span className="text-sm font-medium">{trustee.name}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {hasApproved ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Clock className="w-4 h-4 text-yellow-600" />}
+                                <Badge className={getStatusColor(hasApproved ? 'approved' : 'pending')}>
+                                  {hasApproved ? 'Approved' : 'Pending'}
+                                </Badge>
+                              </div>
                             </div>
-                          ))}
+                          );
+                        })}
                       </div>
                     </div>
-                  )}
 
-                  {/* Trustee Actions */}
-                  {currentUserIsTrustee && !hasUserVoted && request.status === 'pending' && (
-                    <div className="border-t pt-4 space-y-3">
-                      <div>
-                        <Label htmlFor={`comment-${request.id}`}>Comment (optional)</Label>
-                        <Textarea
-                          id={`comment-${request.id}`}
-                          placeholder="Add your comment..."
-                          value={selectedRequest === request.id ? comment : ""}
-                          onChange={(e) => {
-                            setComment(e.target.value);
-                            setSelectedRequest(request.id);
-                          }}
-                          className="mt-1"
-                        />
+                    {currentUserIsTrustee && !userHasVoted && request.status === 'pending' && (
+                      <div className="border-t pt-4 space-y-3">
+                        <div>
+                          <Label htmlFor={`comment-${request.id}`}>Comment (optional)</Label>
+                          <Textarea
+                            id={`comment-${request.id}`}
+                            placeholder="Add your comment..."
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => handleApproval(request.id, 'approved')}
+                            className="bg-green-600 hover:bg-green-700 flex-1"
+                            disabled={isSubmitting === request.id}
+                          >
+                            {isSubmitting === request.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
+                            Approve
+                          </Button>
+                          <Button
+                            onClick={() => handleApproval(request.id, 'rejected')}
+                            variant="destructive"
+                            className="flex-1"
+                            disabled={isSubmitting === request.id}
+                          >
+                            {isSubmitting === request.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-2" />}
+                            Reject
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          onClick={() => handleApproval(request.id, 'approved')}
-                          className="bg-green-600 hover:bg-green-700 flex-1"
-                        >
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Approve
-                        </Button>
-                        <Button
-                          onClick={() => handleApproval(request.id, 'rejected')}
-                          variant="destructive"
-                          className="flex-1"
-                        >
-                          <XCircle className="w-4 h-4 mr-2" />
-                          Reject
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                    )}
 
-                  {hasUserVoted && (
-                    <div className="border-t pt-4">
-                      <Badge className={getStatusColor(userApproval!.status)}>
-                        You {userApproval!.status} this request
-                      </Badge>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    {userHasVoted && (
+                      <div className="border-t pt-4">
+                        <Badge className={getStatusColor('approved')}>
+                          You have voted on this request
+                        </Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

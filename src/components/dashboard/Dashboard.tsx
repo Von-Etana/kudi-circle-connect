@@ -122,7 +122,7 @@ export const Dashboard = () => {
                 Management
               </button>
             </div>
-            {duesSection === "main" ? <DuesTabContent /> : <GroupManagementTab />}
+            {duesSection === "main" ? <DuesTabContent groupId="3c3a442a-4a86-4552-95b7-7df9c5cfdc13" /> : <GroupManagementTab groupId="3c3a442a-4a86-4552-95b7-7df9c5cfdc13" />}
           </TabsContent>
 
           <TabsContent value="crowd" className="space-y-6">

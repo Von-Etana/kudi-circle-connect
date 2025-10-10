@@ -1,36 +1,49 @@
 
-import { useState, createContext, useContext } from "react";
-import { Bell } from "lucide-react";
+import { useState, createContext, useContext, useEffect, useCallback } from "react";
+import { Bell, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
 
-// Shared context for notifications
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  read: boolean;
+  created_at: string;
+}
+
 const NotificationContext = createContext<{
-  notifications: { title: string; description: string; time: string }[];
-  addNotification: (notif: { title: string; description: string }) => void;
+  notifications: Notification[];
+  unreadCount: number;
+  loading: boolean;
+  markAsRead: (notificationId: string) => void;
+  markAllAsRead: () => void;
 }>({
   notifications: [],
-  addNotification: () => {},
+  unreadCount: 0,
+  loading: false,
+  markAsRead: () => {},
+  markAllAsRead: () => {},
 });
 
-let notifId = 0;
-function getTime() {
-  // Returns live time e.g., "12:18pm"
-  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-// Export a provider hook to be used in Dashboard
 export function useNotifications() {
-  const ctx = useContext(NotificationContext);
-  return ctx;
+  return useContext(NotificationContext);
 }
 
-// Notifications dropdown with bell
 export function NotificationsDropdown() {
-  const { notifications } = useNotifications();
+  const { notifications, unreadCount, loading, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
 
-  // Bell shows a dot for new unread notifications
-  const unread = notifications.length > 0;
+  const handleOpen = () => {
+    setOpen(!open);
+    if (!open && unreadCount > 0) {
+      // Mark all as read when dropdown is opened
+      markAllAsRead();
+    }
+  };
 
   return (
     <div className="relative">
@@ -39,11 +52,14 @@ export function NotificationsDropdown() {
         size="icon"
         aria-label="Notifications"
         className="rounded-full"
-        onClick={() => setOpen(!open)}
+        onClick={handleOpen}
       >
         <Bell className="w-6 h-6 text-emerald-700" />
-        {unread && (
-          <span className="absolute top-2 right-2 block w-2 h-2 bg-red-500 rounded-full"></span>
+        {unreadCount > 0 && (
+          <span className="absolute top-2 right-2 flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          </span>
         )}
       </Button>
       {open && (
@@ -54,39 +70,81 @@ export function NotificationsDropdown() {
               Close
             </Button>
           </div>
-          <ul className="max-h-64 overflow-auto divide-y divide-emerald-50">
-            {notifications.length === 0 ? (
-              <li className="p-4 text-gray-400 text-center">No notifications yet</li>
-            ) : notifications.map((notif, idx) => (
-              <li key={idx} className="p-4 hover:bg-emerald-50 transition-colors">
-                <div className="font-semibold text-gray-800">{notif.title}</div>
-                <div className="text-sm text-gray-700">{notif.description}</div>
-                <div className="text-right text-xs text-gray-400 mt-1">{notif.time}</div>
-              </li>
-            ))}
-          </ul>
+          {loading ? (
+            <div className="p-4 text-center">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto text-emerald-500" />
+            </div>
+          ) : (
+            <ul className="max-h-80 overflow-auto divide-y divide-emerald-50">
+              {notifications.length === 0 ? (
+                <li className="p-4 text-gray-400 text-center">No notifications yet</li>
+              ) : (
+                notifications.map((notif) => (
+                  <li key={notif.id} className={`p-4 transition-colors ${!notif.read ? 'bg-emerald-50' : ''}`}>
+                    <div className="font-semibold text-gray-800">{notif.title}</div>
+                    <div className="text-sm text-gray-700">{notif.description}</div>
+                    <div className="text-right text-xs text-gray-400 mt-1">
+                      {formatDistanceToNow(new Date(notif.created_at))} ago
+                    </div>
+                  </li>
+                ))
+              )}
+            </ul>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-// Context Provider: Wrap Dashboard page with this!
 export function NotificationsProvider({ children }: { children: React.ReactNode }) {
-  const [notifications, setNotifications] = useState<{ title: string; description: string; time: string }[]>([]);
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const addNotification = (notif: { title: string; description: string }) => {
-    setNotifications((prev) => [
-      {
-        ...notif,
-        time: getTime(),
-      },
-      ...prev,
-    ]);
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      setNotifications(data || []);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  const markAsRead = async (notificationId: string) => {
+    setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
+    await supabase.from('notifications').update({ read: true }).eq('id', notificationId);
+  };
+
+  const markAllAsRead = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    if (!user) return;
+    await supabase.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false);
   };
 
   return (
-    <NotificationContext.Provider value={{ notifications, addNotification }}>
+    <NotificationContext.Provider value={{
+      notifications,
+      unreadCount: notifications.filter(n => !n.read).length,
+      loading,
+      markAsRead,
+      markAllAsRead,
+    }}>
       {children}
     </NotificationContext.Provider>
   );

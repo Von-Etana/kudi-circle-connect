@@ -1,55 +1,68 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  duesTitle?: string;
-  amount?: number;
+  duesTitle: string;
+  amount: number;
+  onPay: () => Promise<void>;
 }
 
-export function PayDuesModal({ open, onOpenChange, duesTitle = "Outstanding Dues", amount = 0 }: Props) {
-  const { toast } = useToast();
-  const [payAmount, setPayAmount] = useState(amount);
+export function PayDuesModal({ open, onOpenChange, duesTitle, amount, onPay }: Props) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handlePay = () => {
-    toast({
-      title: "Payment Successful",
-      description: `You have paid ₦${payAmount.toLocaleString()} for ${duesTitle}`,
-    });
-    onOpenChange(false);
+  const handlePay = async () => {
+    setIsSubmitting(true);
+    try {
+      await onPay();
+      // Toast is handled by the hook, modal will be closed by parent
+    } catch (error) {
+      console.error("Payment failed:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isSubmitting && onOpenChange(isOpen)}>
       <DialogContent className="max-w-xs w-full px-2 sm:px-6">
         <DialogHeader>
-          <DialogTitle>Pay Dues</DialogTitle>
+          <DialogTitle>Confirm Payment</DialogTitle>
           <DialogDescription>
-            Settle your outstanding community dues now.
+            You are about to pay for the following community due.
           </DialogDescription>
         </DialogHeader>
-        <div className="my-3">
-          <div className="mb-1 text-sm">Dues Title</div>
-          <div className="font-semibold">{duesTitle}</div>
+        <div className="my-4 space-y-4">
+          <div>
+            <p className="text-sm text-gray-500">Dues Title</p>
+            <p className="font-semibold text-lg">{duesTitle}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Amount to Pay</p>
+            <p className="font-bold text-2xl text-emerald-600">
+              ₦{amount.toLocaleString()}
+            </p>
+          </div>
         </div>
-        <div className="mb-4 flex flex-col">
-          <div className="mb-1 text-sm">Amount (₦)</div>
-          <Input
-            type="number"
-            min={0}
-            value={payAmount}
-            onChange={e => setPayAmount(+e.target.value)}
+        <DialogFooter className="flex flex-col gap-2">
+          <Button
+            className="bg-emerald-600 hover:bg-emerald-700 w-full"
+            onClick={handlePay}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : `Pay ₦${amount.toLocaleString()}`}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
             className="w-full"
-          />
-        </div>
-        <DialogFooter>
-          <Button className="bg-emerald-600 hover:bg-emerald-700 flex-1 w-full" onClick={handlePay}>
-            Pay Now
+          >
+            Cancel
           </Button>
         </DialogFooter>
       </DialogContent>
